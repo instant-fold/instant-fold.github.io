@@ -1,0 +1,11 @@
+{
+  "context": "way4/RL",
+  "split": "seen",
+  "way": "way4",
+  "mode": "RL",
+  "instruction": "Fold both sleeves diagonally toward the opposite side, then fold the left side over the right side. Do the right sleeve first.",
+  "clean_h5_path": "/home/yilong/instant-fold/data/paper_strategy_bank_00037_clean_fov45/way4/RL/00037_way4_RL_000.h5",
+  "preview_path": "/home/yilong/instant-fold/artifacts/website_sameinit_top20_preview_only/dense4-summary-stateevent-no-temporal-alibi-demo-nohand-epoch500/seen/way4/RL/preview.png",
+  "width": 1788,
+  "height": 396
+}

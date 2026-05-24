@@ -1,0 +1,581 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { project } from "../data/project.js";
+
+const { hero, zeroShotSim2Real, videoSets, abstract } = project;
+const defaultSet = videoSets.pink;
+const rolloutRoot = path.join(process.cwd(), "public/assets/videos/flex_rollouts");
+const rolloutPreviewRoot = path.join(process.cwd(), "public/assets/images/flex_rollouts");
+const serializedVideoSets = JSON.stringify(videoSets);
+const naturalSort = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+const toPublicUrl = (absPath: string) => `/${path.relative(path.join(process.cwd(), "public"), absPath).split(path.sep).join("/")}`;
+
+const collectDirectMp4Files = (absDir: string): string[] => {
+  const entries = fs.readdirSync(absDir, { withFileTypes: true }).sort((a, b) => naturalSort(a.name, b.name));
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".mp4"))
+    .map((entry) => path.join(absDir, entry.name));
+};
+
+const collectRolloutModes = () => {
+  if (!fs.existsSync(rolloutRoot)) return [];
+  const modes: Array<{
+    key: string;
+    group: string;
+    label: string;
+    videos: string[];
+  }> = [];
+
+  ["seen", "unseen"].forEach((group) => {
+    const groupDir = path.join(rolloutRoot, group);
+    if (!fs.existsSync(groupDir)) return;
+    const wayDirs = fs
+      .readdirSync(groupDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort(naturalSort);
+
+    wayDirs.forEach((wayName) => {
+      const wayDir = path.join(groupDir, wayName);
+      const leafDirs = fs
+        .readdirSync(wayDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort(naturalSort);
+
+      leafDirs.forEach((leafName) => {
+        const absModeDir = path.join(wayDir, leafName);
+        const videos = collectDirectMp4Files(absModeDir).map(toPublicUrl);
+        if (!videos.length) return;
+
+        const previewPath = path.join(rolloutPreviewRoot, group, wayName, leafName, "preview.png");
+
+        modes.push({
+          key: `${group}/${wayName}/${leafName}`,
+          group,
+          label: `${wayName.replace(/^way/i, "Way ")} / ${leafName}`,
+          preview: fs.existsSync(previewPath) ? toPublicUrl(previewPath) : "",
+          videos,
+        });
+      });
+    });
+  });
+
+  return modes;
+};
+
+const rolloutModes = collectRolloutModes();
+const defaultRolloutMode = rolloutModes.find((mode) => mode.group === "seen") ?? rolloutModes[0] ?? null;
+const serializedRolloutModes = JSON.stringify(rolloutModes);
+---
+
+<BaseLayout title={`${hero.title} | ${project.site.name}`} description={project.site.description}>
+  <main id="top" class="min-h-screen bg-white">
+    <div class="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 lg:py-12">
+      <section class="mx-auto max-w-5xl">
+        <h1 class="font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
+          <span class="text-stone-700">{hero.title}</span>
+        </h1>
+
+        <p class="font-poppins mb-6 text-center text-2xl font-semibold text-red-500">{hero.venue}</p>
+
+        <div class="font-poppins mb-6 flex flex-wrap justify-center gap-x-3 gap-y-2 text-center text-stone-800">
+          {hero.authors.map((author) => (
+            <span>
+              {author.href ? (
+                <a href={author.href} target="_blank" rel="noreferrer" class="hover:underline">
+                  {author.name}
+                </a>
+              ) : (
+                author.name
+              )}
+            </span>
+          ))}
+        </div>
+
+        <div class="mb-8 flex flex-wrap justify-center gap-3">
+          {hero.actions.map((action) => (
+            <a
+              href={action.href}
+              target={action.external ? "_blank" : undefined}
+              rel={action.external ? "noreferrer" : undefined}
+              class="font-poppins rounded-2xl bg-stone-100 px-4 py-2 text-sm text-black no-underline"
+            >
+              {action.label}
+            </a>
+          ))}
+        </div>
+
+        <!-- <div class="mb-3">
+          <video
+            autoplay
+            muted
+            playsinline
+            loop
+            controls
+            preload="metadata"
+            class="mx-auto w-full rounded-xl sm:max-w-[95%]"
+          >
+            <source src={hero.teaserVideo} type="video/mp4" />
+          </video>
+        </div> -->
+
+        <!-- <p class="copy-sans mx-auto mb-10 max-w-4xl text-center text-lg text-stone-700">
+          {hero.teaserCaption}
+        </p> -->
+
+        <div class="space-y-4">
+          <section class="mx-auto w-full rounded-2xl bg-white p-6">
+            <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">Abstract</h2>
+            <div class="copy-sans space-y-3 text-justify text-md text-stone-800">
+              {abstract.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+          </section>
+
+          <section class="mx-auto w-full rounded-2xl bg-white p-6">
+            <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">Overview</h2>
+            <div class="overflow-hidden rounded-sm">
+              <img
+                src="/assets/images/overview.png"
+                alt="Overview of Instant Fold"
+                class="mx-auto h-auto w-[75%] object-contain"
+              />
+            </div>
+            <p class="copy-sans mt-3 text-justify text-md leading-7 text-stone-800">
+              <span class="font-semibold">Overview of Instant Fold:</span>
+              {' '}
+              (1) We first pretrain a deformation-aware tokenizer with temporal contrastive supervision, lifting masked RGB-D observations into geo-semantic 3D cloth tokens. (2) During policy learning, the shared encoders tokenize both the demonstration and current observations, aggregate dense spatio-temporal demonstration context, and condition a flow-matching denoising transformer to reconstruct clean dual-arm action trajectories from noise.
+            </p>
+          </section>
+
+          <section class="mx-auto w-full rounded-2xl bg-white p-4">
+            <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
+              Temporal Constrative Pretraining
+            </h2>
+            <div class="mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="copy-sans text-center text-md leading-7 text-stone-700">
+                We introduce a soft-weighted supervised contrastive objective to pretrain deformation-aware visual representation in simulation.
+              </p>
+            </div>
+            <div class="grid gap-3 md:grid-cols-2">
+              <figure class="overflow-hidden rounded-2xl p-3">
+                <img
+                  src="/assets/images/pretrain/self-match.png"
+                  alt="Self-match pretraining illustration"
+                  class="mx-auto h-auto w-full rounded-xl object-contain"
+                />
+              </figure>
+              <figure class="overflow-hidden rounded-2xl p-3">
+                <img
+                  src="/assets/images/pretrain/cross-match.png"
+                  alt="Cross-match pretraining illustration"
+                  class="mx-auto h-auto w-full rounded-xl object-contain"
+                />
+              </figure>
+            </div>
+            <div class="mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="copy-sans text-center text-md leading-7 text-stone-700">
+                As a result, our visual encoder produces temporally consistent and spatially coherent representation for downstream manipulation.
+              </p>
+            </div>
+
+            <div class="mb-3 flex flex-wrap items-center justify-center gap-3 text-sm font-medium text-stone-600">
+              <span class="text-stone-700">Slide for comparison:</span>
+              <button type="button" data-baseline="unigarment" aria-pressed="true" class="baseline-pill px-1 py-1 text-sm font-medium text-stone-950">
+                UniGarment
+              </button>
+              <button type="button" data-baseline="dino" aria-pressed="false" class="baseline-pill px-1 py-1 text-sm font-medium text-stone-600">
+                DINOv3
+              </button>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              <div class="cvpr-compare" data-compare data-left-unigarment="/assets/images/pretrain/realworld_shared_pca_unigarment_1.png" data-left-dino="/assets/images/pretrain/realworld_shared_pca_raw_dino_1.png" data-right-src="/assets/images/pretrain/realworld_shared_pca_ours_1.png">
+                <img src="/assets/images/pretrain/realworld_shared_pca_unigarment_1.png" alt="Baseline representation comparison 1" class="compare-base" data-compare-base />
+                <img src="/assets/images/pretrain/realworld_shared_pca_ours_1.png" alt="Ours representation comparison 1" class="compare-top" data-compare-top />
+                <span class="compare-label compare-label-left">Ours</span>
+                <span class="compare-label compare-label-right" data-compare-baseline-label>UniGarment</span>
+                <div class="compare-handle" data-compare-handle>
+                  <div class="compare-divider" data-compare-divider></div>
+                  <div class="compare-arrows" aria-hidden="true">
+                    <span class="compare-arrow left"></span>
+                    <span class="compare-arrow right"></span>
+                  </div>
+                </div>
+                <input type="range" min="0" max="100" value="50" aria-label="Compare representations 1" class="compare-slider" data-compare-slider />
+              </div>
+
+              <div class="cvpr-compare" data-compare data-left-unigarment="/assets/images/pretrain/realworld_shared_pca_unigarment_2.png" data-left-dino="/assets/images/pretrain/realworld_shared_pca_raw_dino_2.png" data-right-src="/assets/images/pretrain/realworld_shared_pca_ours_2.png">
+                <img src="/assets/images/pretrain/realworld_shared_pca_unigarment_2.png" alt="Baseline representation comparison 2" class="compare-base" data-compare-base />
+                <img src="/assets/images/pretrain/realworld_shared_pca_ours_2.png" alt="Ours representation comparison 2" class="compare-top" data-compare-top />
+                <span class="compare-label compare-label-left">Ours</span>
+                <span class="compare-label compare-label-right" data-compare-baseline-label>UniGarment</span>
+                <div class="compare-handle" data-compare-handle>
+                  <div class="compare-divider" data-compare-divider></div>
+                  <div class="compare-arrows" aria-hidden="true">
+                    <span class="compare-arrow left"></span>
+                    <span class="compare-arrow right"></span>
+                  </div>
+                </div>
+                <input type="range" min="0" max="100" value="50" aria-label="Compare representations 2" class="compare-slider" data-compare-slider />
+              </div>
+            </div>
+          </section>
+          {rolloutModes.length > 0 && (
+            <section class="rounded-2xl bg-white p-6">
+              <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
+                Simulation Rollouts
+              </h2>
+
+              <div class="mb-3 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <p class="copy-sans max-w-3xl text-md leading-7 text-stone-700">
+                    We show different simulation rollouts for folding modes both seen and unseen during training.
+                  </p>
+                  <div class="inline-flex items-center gap-2 self-start rounded-full border border-stone-200 bg-white px-3 py-1 shadow-sm">
+                    <span class="font-poppins text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">
+                      Mode
+                    </span>
+                    <select
+                      data-rollout-picker
+                      class="min-w-[7.5rem] bg-transparent text-sm font-medium text-stone-700 outline-none"
+                    >
+                      <optgroup label="Seen">
+                        {rolloutModes.filter((mode) => mode.group === "seen").map((mode) => (
+                          <option value={mode.key} selected={mode.key === defaultRolloutMode?.key}>
+                            {mode.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Unseen">
+                        {rolloutModes.filter((mode) => mode.group === "unseen").map((mode) => (
+                          <option value={mode.key}>{mode.label}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <section class="space-y-1">
+                <figure class="w-full max-w-4xl overflow-hidden bg-white p-4">
+                  {defaultRolloutMode?.preview ? (
+                    <div class="flex h-40 w-full items-start justify-start">
+                      <img
+                        data-rollout-preview
+                        src={defaultRolloutMode.preview}
+                        alt={`${defaultRolloutMode.group === "seen" ? "Seen" : "Unseen"} rollout preview`}
+                        class="h-full w-full object-contain object-left"
+                        loading="eager"
+                      />
+                    </div>
+                  ) : (
+                    <div class="flex h-40 items-center justify-center text-center">
+                      <p class="copy-sans px-4 text-sm text-stone-500">Preview placeholder</p>
+                    </div>
+                  )}
+                </figure>
+
+                <div class="grid gap-3 grid-cols-2 lg:grid-cols-6" data-rollout-grid>
+                  {defaultRolloutMode?.videos.slice(0, 12).map((video) => (
+                    <figure class="overflow-hidden">
+                      <video
+                        autoplay
+                        muted
+                        playsinline
+                        loop
+                        preload="metadata"
+                        src={video}
+                        class="mx-auto h-auto w-full object-contain"
+                      />
+                    </figure>
+                  ))}
+                </div>
+              </section>
+          </section>
+          )}
+            <section class="rounded-2xl bg-white p-6">
+            <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
+              {zeroShotSim2Real.title}
+            </h2>
+            <div class="mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="copy-sans text-center text-md leading-7 text-stone-700">
+                  Our policy transfers zero-shot to the real world without any real-world data collection or fine-tuning and instantly executes the intended folding strategy from a single human demonstration without requiring robot demonstrations.
+              </p>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              {zeroShotSim2Real.videos.map((item) => (
+                <figure class="overflow-hidden rounded-2xl bg-stone-50 p-3">
+                  <video
+                    autoplay
+                    muted
+                    playsinline
+                    loop
+                    controls
+                    preload="metadata"
+                    class="mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
+                  >
+                    <source src={item.video} type="video/mp4" />
+                  </video>
+                  {item.label && (
+                    <figcaption class="font-poppins mt-3 text-center text-sm text-stone-600">
+                      {item.label}
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          </section>
+
+          <section class="rounded-2xl bg-white p-6">
+            <div class="mb-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+              <h2 class="font-poppins text-center text-xl font-semibold">More Examples</h2>
+              <div class="inline-flex flex-wrap justify-center gap-1 rounded-full bg-stone-100 p-1">
+                {Object.entries(videoSets).map(([key, set], index) => (
+                  <button
+                    type="button"
+                    data-video-set={key}
+                    aria-pressed={index === 0 ? "true" : "false"}
+                    class="font-poppins cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-200 hover:text-stone-900"
+                  >
+                    {set.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              {defaultSet.videos.map((item, index) => (
+                <figure class="overflow-hidden rounded-2xl bg-stone-50 p-3">
+                  <video
+                    data-grid-video
+                    data-index={index}
+                    autoplay
+                    muted
+                    playsinline
+                    loop
+                    preload="metadata"
+                    class="mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
+                  >
+                    <source src={item.video} type="video/mp4" />
+                  </video>
+                  <figcaption
+                    data-grid-caption
+                    class="font-poppins mt-3 text-center text-sm text-stone-600"
+                  >
+                    {item.label}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <footer class="mt-6 bg-stone-50 py-6">
+      <div class="flex justify-center">
+        <a href="#top" class="font-poppins text-base text-black transition hover:scale-105">
+          Back to Top
+        </a>
+      </div>
+    </footer>
+  </main>
+
+  <script id="video-sets" type="application/json" set:html={serializedVideoSets}></script>
+  <script id="rollout-modes" type="application/json" set:html={serializedRolloutModes}></script>
+
+  <script is:inline>
+    const initCompareSliders = () => {
+      const compareCards = [...document.querySelectorAll("[data-compare]")];
+      const baselineButtons = [...document.querySelectorAll("[data-baseline]")];
+      const baselineLabels = [...document.querySelectorAll("[data-compare-baseline-label]")];
+      let baseline = "unigarment";
+      const baselineText = {
+        unigarment: "UniGarment",
+        dino: "DINOv3",
+      };
+
+      const updateCard = (card, value) => {
+              const topImage = card.querySelector("[data-compare-top]");
+              const divider = card.querySelector("[data-compare-divider]");
+              const slider = card.querySelector("[data-compare-slider]");
+              const leftLabel = card.querySelector(".compare-label-left");
+              const rightLabel = card.querySelector(".compare-label-right");
+              const leftUni = card.dataset.leftUnigarment;
+              const leftDino = card.dataset.leftDino;
+              const rightSrc = card.dataset.rightSrc;
+              const base = card.querySelector("[data-compare-base]");
+
+        if (!topImage || !divider || !slider || !base) return;
+
+        const pct = Math.max(0, Math.min(100, value));
+        const src = baseline === "dino" ? leftDino : leftUni;
+        const fadeEdge = 18;
+        const leftOpacity = Math.max(0, Math.min(1, (pct - 8) / fadeEdge));
+        const rightOpacity = Math.max(0, Math.min(1, (92 - pct) / fadeEdge));
+
+        base.src = src;
+        topImage.src = rightSrc;
+        topImage.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+        divider.style.left = `${pct}%`;
+        card.style.setProperty("--slider-x", `${pct}%`);
+        if (leftLabel) {
+          leftLabel.style.opacity = String(leftOpacity);
+          leftLabel.style.transform = `translateX(${Math.max(-10, (pct - 50) * -0.12)}px)`;
+        }
+        if (rightLabel) {
+          rightLabel.style.opacity = String(rightOpacity);
+          rightLabel.style.transform = `translateX(${Math.min(10, (pct - 50) * 0.12)}px)`;
+        }
+        slider.value = String(pct);
+      };
+
+      const refresh = () => {
+        compareCards.forEach((card) => {
+          const slider = card.querySelector("[data-compare-slider]");
+          if (!slider) return;
+          updateCard(card, Number(slider.value || 50));
+        });
+        baselineLabels.forEach((label) => {
+          label.textContent = baselineText[baseline] || "Baseline";
+        });
+      };
+
+      const applyBaseline = (name) => {
+        baseline = name || "unigarment";
+        baselineButtons.forEach((btn) => {
+          const active = btn.dataset.baseline === baseline;
+          btn.setAttribute("aria-pressed", active ? "true" : "false");
+          btn.classList.toggle("text-stone-950", active);
+          btn.classList.toggle("text-stone-600", !active);
+        });
+        refresh();
+      };
+
+      baselineButtons.forEach((button) => {
+        button.addEventListener("click", () => applyBaseline(button.dataset.baseline));
+        button.addEventListener("mouseenter", () => applyBaseline(button.dataset.baseline));
+        button.addEventListener("focus", () => applyBaseline(button.dataset.baseline));
+      });
+
+      compareCards.forEach((card) => {
+        const slider = card.querySelector("[data-compare-slider]");
+        if (!slider) return;
+        slider.addEventListener("input", (event) => {
+          updateCard(card, Number(event.target.value));
+        });
+      });
+
+      applyBaseline(baseline);
+    };
+
+    const initRolloutGallery = () => {
+      const rolloutModes = JSON.parse(document.getElementById("rollout-modes")?.textContent || "[]");
+      if (!rolloutModes.length) return;
+
+      const picker = document.querySelector("[data-rollout-picker]");
+      const preview = document.querySelector("[data-rollout-preview]");
+      const grid = document.querySelector("[data-rollout-grid]");
+
+      let activeMode = picker?.value || rolloutModes[0].key;
+
+      const applyMode = (key) => {
+        const mode = rolloutModes.find((item) => item.key === key);
+        if (!mode) return;
+
+        activeMode = key;
+        if (picker) picker.value = key;
+
+        if (preview && mode.preview) {
+          preview.src = mode.preview;
+        }
+
+        if (!grid) return;
+
+        grid.innerHTML = mode.videos.slice(0, 12)
+          .map(
+            (video) => `
+              <figure class="overflow-hidden">
+                <video autoplay muted playsinline loop preload="metadata" src="${video}" class="mx-auto h-auto w-full object-contain"></video>
+              </figure>
+            `
+          )
+          .join("");
+      };
+
+      picker?.addEventListener("change", (event) => {
+        applyMode(event.target.value);
+      });
+
+      applyMode(activeMode);
+    };
+
+    const initVideoSets = () => {
+      const videoSets = JSON.parse(document.getElementById("video-sets")?.textContent || "{}");
+      const setButtons = [...document.querySelectorAll("[data-video-set]")];
+      const videos = [...document.querySelectorAll("[data-grid-video]")];
+      const captions = [...document.querySelectorAll("[data-grid-caption]")];
+
+      if (!setButtons.length || !videos.length) return;
+
+      const applySet = (name) => {
+        const nextSet = videoSets?.[name];
+        if (!nextSet) return;
+
+        videos.forEach((video, index) => {
+          const source = video.querySelector("source");
+          const caption = captions[index];
+          const item = nextSet.videos[index];
+          const card = video.closest("figure");
+
+          if (!source || !card) return;
+
+          if (item) {
+            video.src = item.video;
+            source.src = item.video;
+            card.classList.remove("hidden");
+            if (caption) caption.textContent = item.label;
+            video.load();
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+            video.removeAttribute("src");
+            source.removeAttribute("src");
+            card.classList.add("hidden");
+          }
+        });
+
+        setButtons.forEach((button) => {
+          const isActive = button.dataset.videoSet === name;
+          button.setAttribute("aria-pressed", isActive ? "true" : "false");
+          button.classList.toggle("bg-white", isActive);
+          button.classList.toggle("text-stone-950", isActive);
+          button.classList.toggle("shadow-sm", isActive);
+          button.classList.toggle("text-stone-600", !isActive);
+        });
+      };
+
+      setButtons.forEach((button) => {
+        button.addEventListener("click", () => applySet(button.dataset.videoSet));
+      });
+
+      applySet("pink");
+    };
+
+    const init = () => {
+      initCompareSliders();
+      initRolloutGallery();
+      initVideoSets();
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+      init();
+    }
+  </script>
+</BaseLayout>

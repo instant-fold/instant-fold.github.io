@@ -1,0 +1,236 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+  font-family: "Instrument Sans", "Poppins", "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #fff;
+  color: #1c1917;
+  font-family: "Instrument Sans", "Poppins", "Segoe UI", sans-serif;
+}
+
+video {
+  display: block;
+}
+
+video::-webkit-media-controls-panel,
+video:hover::-webkit-media-controls-panel {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 70px !important;
+  background-color: black !important;
+}
+
+video::-webkit-media-controls-panel {
+  opacity: 0;
+}
+
+video:hover::-webkit-media-controls-panel {
+  opacity: 0.75;
+}
+
+.font-poppins {
+  font-family: "Poppins", "Instrument Sans", "Segoe UI", sans-serif;
+}
+
+.copy-sans {
+  font-family: "Instrument Sans", "Poppins", "Segoe UI", sans-serif;
+}
+
+.cvpr-compare {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #fff;
+  --compare-space: 1rem;
+  --compare-handle-y: 48%;
+  padding-bottom: var(--compare-space);
+}
+
+.compare-base,
+.compare-top {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+
+.compare-top {
+  position: absolute;
+  inset: 0;
+}
+
+.compare-label {
+  position: absolute;
+  bottom: 0.95rem;
+  z-index: 2;
+  font-family: "Poppins", "Instrument Sans", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  color: #292524;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.compare-label-left {
+  left: 1.1rem;
+}
+
+.compare-label-right {
+  right: 1.1rem;
+}
+
+.compare-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: var(--compare-space);
+  pointer-events: none;
+}
+
+.compare-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.14);
+  transform: translateX(-1px);
+  pointer-events: none;
+}
+
+.compare-divider::after {
+  content: "";
+  position: absolute;
+  top: var(--compare-handle-y);
+  left: 50%;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14);
+  transform: translate(-50%, -50%);
+}
+
+.compare-arrows {
+  position: absolute;
+  top: var(--compare-handle-y);
+  left: var(--slider-x, 50%);
+  width: 2.2rem;
+  height: 1rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.compare-arrow {
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+
+.compare-arrow.left {
+  left: 0;
+  border-top: 0.28rem solid transparent;
+  border-bottom: 0.28rem solid transparent;
+  border-right: 0.38rem solid rgba(15, 23, 42, 0.7);
+}
+
+.compare-arrow.right {
+  right: 0;
+  border-top: 0.28rem solid transparent;
+  border-bottom: 0.28rem solid transparent;
+  border-left: 0.38rem solid rgba(15, 23, 42, 0.7);
+}
+
+.baseline-pill {
+  position: relative;
+  transition: color 150ms ease, opacity 150ms ease;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.45rem;
+}
+
+.baseline-pill:hover {
+  color: #0f172a;
+}
+
+.baseline-pill:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-decoration-color: rgba(120, 113, 108, 0.7);
+}
+
+.baseline-pill[aria-pressed="true"] {
+  text-decoration: underline;
+  text-decoration-color: rgba(120, 113, 108, 0.9);
+}
+
+.baseline-pill[aria-pressed="false"] {
+  text-decoration: none;
+}
+
+.rollout-group-btn,
+.rollout-mode-btn {
+  border-radius: 9999px;
+  transition: color 150ms ease, background-color 150ms ease, opacity 150ms ease, text-decoration-color 150ms ease;
+}
+
+.rollout-group-btn[aria-pressed="true"],
+.rollout-mode-btn[aria-pressed="true"] {
+  color: #0f172a;
+  text-decoration: underline;
+  text-decoration-color: rgba(120, 113, 108, 0.9);
+  text-underline-offset: 0.35rem;
+}
+
+.rollout-group-btn[aria-pressed="false"],
+.rollout-mode-btn[aria-pressed="false"] {
+  color: #78716c;
+  text-decoration: none;
+}
+
+.rollout-mode-btn:hover,
+.rollout-group-btn:hover {
+  color: #0f172a;
+}
+
+.compare-slider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: var(--compare-space);
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  touch-action: pan-y;
+}
+
+@media (max-width: 768px) {
+  .compare-slider {
+    bottom: var(--compare-space);
+  }
+
+  .compare-divider {
+    bottom: var(--compare-space);
+  }
+
+  .compare-arrows {
+    transform: translate(-50%, -50%);
+  }
+}
