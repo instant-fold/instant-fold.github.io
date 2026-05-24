@@ -19,12 +19,30 @@ const collectDirectMp4Files = (absDir: string): string[] => {
     .map((entry) => path.join(absDir, entry.name));
 };
 
+const formatRolloutModeName = (modeName: string) => {
+  const modeMap: Record<string, string> = {
+    L: "Left-first",
+    R: "Right-first",
+    S: "Simultaneous",
+    LL: "Left-Left",
+    LR: "Left-Right",
+    RL: "Right-Left",
+    RR: "Right-Right",
+    SL: "Simultaneous-Left",
+    SR: "Simultaneous-Right",
+  };
+
+  return modeMap[modeName] ?? modeName;
+};
+
 const collectRolloutModes = () => {
   if (!fs.existsSync(rolloutRoot)) return [];
   const modes: Array<{
     key: string;
     group: string;
     label: string;
+    shortLabel: string;
+    instruction: string;
     videos: string[];
   }> = [];
 
@@ -51,11 +69,18 @@ const collectRolloutModes = () => {
         if (!videos.length) return;
 
         const previewPath = path.join(rolloutPreviewRoot, group, wayName, leafName, "preview.png");
+        const previewJsonPath = path.join(rolloutPreviewRoot, group, wayName, leafName, "preview.json");
+        const previewMeta = fs.existsSync(previewJsonPath)
+          ? JSON.parse(fs.readFileSync(previewJsonPath, "utf-8"))
+          : null;
+        const shortLabel = `${wayName}/${leafName}`;
 
         modes.push({
           key: `${group}/${wayName}/${leafName}`,
           group,
-          label: `${wayName.replace(/^way/i, "Way ")} / ${leafName}`,
+          label: `${group === "seen" ? "Seen" : "Unseen"} / ${shortLabel}`,
+          shortLabel,
+          instruction: previewMeta?.instruction ?? "",
           preview: fs.existsSync(previewPath) ? toPublicUrl(previewPath) : "",
           videos,
         });
@@ -245,17 +270,33 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                       <optgroup label="Seen">
                         {rolloutModes.filter((mode) => mode.group === "seen").map((mode) => (
                           <option value={mode.key} selected={mode.key === defaultRolloutMode?.key}>
-                            {mode.label}
+                            {mode.shortLabel}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="Unseen">
                         {rolloutModes.filter((mode) => mode.group === "unseen").map((mode) => (
-                          <option value={mode.key}>{mode.label}</option>
+                          <option value={mode.key}>{mode.shortLabel}</option>
                         ))}
                       </optgroup>
                     </select>
                   </div>
+                </div>
+                <div class="mt-3 space-y-1" data-rollout-copy>
+                  <div class="flex flex-wrap items-center gap-2 text-sm text-stone-500">
+                    <span
+                      class="rounded-full bg-white px-2.5 py-1 font-poppins text-[11px] font-medium uppercase tracking-[0.16em] text-stone-500 ring-1 ring-stone-200"
+                      data-rollout-group
+                    >
+                      {defaultRolloutMode?.group === "seen" ? "Seen" : "Unseen"}
+                    </span>
+                    <span class="font-poppins text-sm font-medium text-stone-700" data-rollout-label>
+                      {defaultRolloutMode?.shortLabel}
+                    </span>
+                  </div>
+                  <p class="copy-sans w-full text-sm leading-6 text-stone-600" data-rollout-instruction>
+                    {defaultRolloutMode?.instruction}
+                  </p>
                 </div>
               </div>
 
@@ -287,9 +328,10 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                         playsinline
                         loop
                         preload="metadata"
-                        src={video}
                         class="mx-auto h-auto w-full object-contain"
-                      />
+                      >
+                        <source src={video} type="video/mp4" />
+                      </video>
                     </figure>
                   ))}
                 </div>
@@ -480,6 +522,9 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       const picker = document.querySelector("[data-rollout-picker]");
       const preview = document.querySelector("[data-rollout-preview]");
       const grid = document.querySelector("[data-rollout-grid]");
+      const groupLabel = document.querySelector("[data-rollout-group]");
+      const modeLabel = document.querySelector("[data-rollout-label]");
+      const instruction = document.querySelector("[data-rollout-instruction]");
 
       let activeMode = picker?.value || rolloutModes[0].key;
 
@@ -494,13 +539,27 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           preview.src = mode.preview;
         }
 
+        if (groupLabel) {
+          groupLabel.textContent = mode.group === "seen" ? "Seen" : "Unseen";
+        }
+
+        if (modeLabel) {
+          modeLabel.textContent = mode.shortLabel || mode.label;
+        }
+
+        if (instruction) {
+          instruction.textContent = mode.instruction || "";
+        }
+
         if (!grid) return;
 
         grid.innerHTML = mode.videos.slice(0, 12)
           .map(
             (video) => `
               <figure class="overflow-hidden">
-                <video autoplay muted playsinline loop preload="metadata" src="${video}" class="mx-auto h-auto w-full object-contain"></video>
+                <video autoplay muted playsinline loop preload="metadata" class="mx-auto h-auto w-full object-contain">
+                  <source src="${video}" type="video/mp4" />
+                </video>
               </figure>
             `
           )
