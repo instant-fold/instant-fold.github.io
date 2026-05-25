@@ -11,6 +11,11 @@ const rolloutPreviewRoot = path.join(process.cwd(), "public/assets/images/flex_r
 const serializedVideoSets = JSON.stringify(videoSets);
 const naturalSort = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 const toPublicUrl = (absPath: string) => `/${path.relative(path.join(process.cwd(), "public"), absPath).split(path.sep).join("/")}`;
+const withAssetVersion = (absPath: string) => {
+  const stats = fs.statSync(absPath);
+  const version = `${Math.floor(stats.mtimeMs)}-${stats.size}`;
+  return `${toPublicUrl(absPath)}?v=${version}`;
+};
 
 const collectDirectMp4Files = (absDir: string): string[] => {
   const entries = fs.readdirSync(absDir, { withFileTypes: true }).sort((a, b) => naturalSort(a.name, b.name));
@@ -86,7 +91,7 @@ const collectRolloutModes = () => {
 
       leafDirs.forEach((leafName) => {
         const absModeDir = path.join(wayDir, leafName);
-        const videos = collectDirectMp4Files(absModeDir).map(toPublicUrl);
+        const videos = collectDirectMp4Files(absModeDir).map(withAssetVersion);
         if (!videos.length) return;
 
         const previewPath = path.join(rolloutPreviewRoot, group, wayName, leafName, "preview.png");
@@ -106,7 +111,7 @@ const collectRolloutModes = () => {
           fullLabel,
           descriptor,
           instruction: previewMeta?.instruction ?? "",
-          preview: fs.existsSync(previewPath) ? toPublicUrl(previewPath) : "",
+          preview: fs.existsSync(previewPath) ? withAssetVersion(previewPath) : "",
           videos,
         });
       });
@@ -122,16 +127,16 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 ---
 
 <BaseLayout title={`${hero.title} | ${project.site.name}`} description={project.site.description}>
-  <main id="top" class="min-h-screen bg-white">
+  <main id="top" class="theme-sage-sand min-h-screen bg-white">
     <div class="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 lg:py-12">
       <section class="mx-auto max-w-5xl">
-        <h1 class="font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
+        <h1 class="theme-hero-title font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
           <span class="text-stone-800">{hero.title}</span>
         </h1>
 
-        <p class="font-poppins mb-6 text-center text-2xl font-semibold text-red-500">{hero.venue}</p>
+        <p class="theme-venue font-poppins mb-6 text-center text-2xl font-semibold text-red-500">{hero.venue}</p>
 
-        <div class="font-poppins mb-6 flex flex-wrap justify-center gap-x-3 gap-y-2 text-center text-stone-800">
+        <div class="theme-authors font-poppins mb-6 flex flex-wrap justify-center gap-x-3 gap-y-2 text-center text-stone-800">
           {hero.authors.map((author) => (
             <span>
               {author.href ? (
@@ -151,7 +156,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               href={action.href}
               target={action.external ? "_blank" : undefined}
               rel={action.external ? "noreferrer" : undefined}
-              class="font-poppins rounded-2xl bg-stone-100 px-4 py-2 text-sm text-black no-underline"
+              class="theme-pill font-poppins rounded-2xl bg-stone-100 px-4 py-2 text-sm text-black no-underline"
             >
               {action.label}
             </a>
@@ -177,14 +182,14 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
         </p> -->
 
         <div class="space-y-4">
-          <section class="mx-auto w-full rounded-2xl bg-white p-2">
+          <section class="theme-surface mx-auto w-full rounded-2xl bg-white p-2">
             <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">Abstract</h2>
-            <div class="copy-sans space-y-3 text-justify text-md text-stone-800">
+            <div class="theme-copy copy-sans space-y-3 text-justify text-md text-stone-800">
               {abstract.map((paragraph) => <p>{paragraph}</p>)}
             </div>
           </section>
 
-          <section class="mx-auto w-full rounded-2xl bg-white p-6">
+          <section class="theme-surface mx-auto w-full rounded-2xl bg-white p-6">
             <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">Overview</h2>
             <div class="overflow-hidden rounded-sm">
               <img
@@ -193,19 +198,19 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                 class="mx-auto h-auto w-[75%] object-contain"
               />
             </div>
-            <p class="copy-sans mt-3 text-justify text-md leading-7 text-stone-800">
+            <p class="theme-copy copy-sans mt-3 text-justify text-md leading-7 text-stone-800">
               <span class="font-semibold">Overview of Instant Fold:</span>
               {' '}
               (1) We first pretrain a deformation-aware tokenizer with temporal contrastive supervision, lifting masked RGB-D observations into geo-semantic 3D cloth tokens. (2) During policy learning, the shared encoders tokenize both the demonstration and current observations, aggregate dense spatio-temporal demonstration context, and condition a flow-matching denoising transformer to reconstruct clean dual-arm action trajectories from noise.
             </p>
           </section>
 
-          <section class="mx-auto w-full rounded-2xl bg-white p-4">
+          <section class="theme-surface mx-auto w-full rounded-2xl bg-white p-4">
             <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
               Temporal Constrative Pretraining
             </h2>
-            <div class="mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
-              <p class="copy-sans text-center text-md leading-7 text-stone-700">
+            <div class="theme-subtle mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="theme-copy copy-sans text-center text-md leading-7 text-stone-700">
                 We introduce a soft-weighted supervised contrastive objective to pretrain deformation-aware visual representation in simulation.
               </p>
             </div>
@@ -225,13 +230,13 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                 />
               </figure>
             </div>
-            <div class="mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
-              <p class="copy-sans text-center text-md leading-7 text-stone-700">
+            <div class="theme-subtle mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="theme-copy copy-sans text-center text-md leading-7 text-stone-700">
                 As a result, our visual encoder produces temporally consistent and spatially coherent representation for downstream manipulation.
               </p>
             </div>
 
-            <div class="mb-3 flex flex-wrap items-center justify-center gap-3 text-sm font-medium text-stone-600">
+            <div class="theme-meta mb-3 flex flex-wrap items-center justify-center gap-3 text-sm font-medium text-stone-600">
               <span class="text-stone-700">Slide for comparison:</span>
               <button type="button" data-baseline="unigarment" aria-pressed="true" class="baseline-pill px-1 py-1 text-sm font-medium text-stone-950">
                 UniGarment
@@ -274,23 +279,23 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             </div>
           </section>
           {rolloutModes.length > 0 && (
-            <section class="rounded-2xl bg-white p-6">
+            <section class="theme-surface rounded-2xl bg-white p-6">
               <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
                 Simulation Rollouts on Unseen Meshes
               </h2>
 
-              <div class="mb-3 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <div class="theme-subtle mb-3 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <p class="copy-sans max-w-3xl text-md leading-7 text-stone-700">
+                  <p class="theme-copy copy-sans max-w-3xl text-md leading-7 text-stone-700">
                     We show different simulation rollouts for folding modes both seen and unseen during training.
                   </p>
-                  <div class="inline-flex items-center gap-2 self-start rounded-full border border-stone-200 bg-white px-3 py-1 shadow-sm">
-                    <span class="font-poppins text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">
+                  <div class="theme-pill inline-flex items-center gap-2 self-start rounded-full border border-stone-200 bg-white px-3 py-1 shadow-sm">
+                    <span class="theme-meta font-poppins text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">
                       Mode
                     </span>
                     <select
                       data-rollout-picker
-                      class="min-w-[7.5rem] bg-transparent text-sm font-medium text-stone-700 outline-none"
+                      class="theme-link min-w-[7.5rem] bg-transparent text-sm font-medium text-stone-700 outline-none"
                     >
                       <optgroup label="Seen">
                         {rolloutModes.filter((mode) => mode.group === "seen").map((mode) => (
@@ -308,28 +313,28 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                   </div>
                 </div>
                 <div class="mt-3 space-y-1" data-rollout-copy>
-                  <div class="flex flex-wrap items-center gap-2 text-sm text-stone-500">
+                  <div class="theme-meta flex flex-wrap items-center gap-2 text-sm text-stone-500">
                     <span
-                      class="rounded-full bg-white px-2.5 py-1 font-poppins text-[11px] font-medium uppercase tracking-[0.16em] text-stone-500 ring-1 ring-stone-200"
+                      class="theme-pill rounded-full bg-white px-2.5 py-1 font-poppins text-[11px] font-medium uppercase tracking-[0.16em] text-stone-500 ring-1 ring-stone-200"
                       data-rollout-group
                     >
                       {defaultRolloutMode?.group === "seen" ? "Seen" : "Unseen"}
                     </span>
-                    <span class="font-poppins text-sm font-medium text-stone-700" data-rollout-label>
+                    <span class="theme-link font-poppins text-sm font-medium text-stone-700" data-rollout-label>
                       {defaultRolloutMode?.fullLabel}
                     </span>
-                    <span class="copy-sans text-sm text-stone-500" data-rollout-descriptor>
+                    <span class="theme-meta copy-sans text-sm text-stone-500" data-rollout-descriptor>
                       {defaultRolloutMode?.descriptor}
                     </span>
                   </div>
-                  <p class="copy-sans w-full text-sm leading-6 text-stone-600" data-rollout-instruction>
+                  <p class="theme-copy copy-sans w-full text-sm leading-6 text-stone-600" data-rollout-instruction>
                     {defaultRolloutMode?.instruction}
                   </p>
                 </div>
               </div>
 
               <section class="space-y-1">
-                <figure class="w-full max-w-4xl overflow-hidden bg-white pt-2 pb-3">
+                <figure class="theme-soft-card w-full max-w-4xl overflow-hidden bg-white pt-2 pb-3">
                   {defaultRolloutMode?.preview ? (
                     <div class="flex h-36 w-full items-start justify-start">
                       <img
@@ -342,7 +347,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                     </div>
                   ) : (
                     <div class="flex h-36 items-center justify-center text-center">
-                      <p class="copy-sans px-4 text-sm text-stone-500">Preview placeholder</p>
+                      <p class="theme-meta copy-sans px-4 text-sm text-stone-500">Preview placeholder</p>
                     </div>
                   )}
                 </figure>
@@ -366,19 +371,19 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               </section>
           </section>
           )}
-            <section class="rounded-2xl bg-white p-6">
+            <section class="theme-surface rounded-2xl bg-white p-6">
             <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
               {zeroShotSim2Real.title}
             </h2>
-            <div class="mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
-              <p class="copy-sans text-center text-md leading-7 text-stone-700">
+            <div class="theme-subtle mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="theme-copy copy-sans text-center text-md leading-7 text-stone-700">
                   Our policy transfers zero-shot to the real world without any real-world data collection or fine-tuning and instantly executes the intended folding strategy from a single human demonstration without requiring robot demonstrations.
               </p>
             </div>
 
             <div class="grid gap-3 md:grid-cols-2">
               {zeroShotSim2Real.videos.map((item) => (
-                <figure class="overflow-hidden rounded-2xl bg-stone-50 p-3">
+                <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
                   <video
                     autoplay
                     muted
@@ -391,7 +396,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                     <source src={item.video} type="video/mp4" />
                   </video>
                   {item.label && (
-                    <figcaption class="font-poppins mt-3 text-center text-sm text-stone-600">
+                    <figcaption class="theme-meta font-poppins mt-3 text-center text-sm text-stone-600">
                       {item.label}
                     </figcaption>
                   )}
@@ -400,10 +405,10 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             </div>
           </section>
 
-          <section class="rounded-2xl bg-white p-6">
+          <section class="theme-surface rounded-2xl bg-white p-6">
             <div class="mb-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
               <h2 class="font-poppins text-center text-xl font-semibold">More Examples</h2>
-              <div class="inline-flex flex-wrap justify-center gap-1 rounded-full bg-stone-100 p-1">
+              <div class="theme-soft-card inline-flex flex-wrap justify-center gap-1 rounded-full bg-stone-100 p-1">
                 {Object.entries(videoSets).map(([key, set], index) => (
                   <button
                     type="button"
@@ -419,7 +424,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 
             <div class="grid gap-3 md:grid-cols-2">
               {defaultSet.videos.map((item, index) => (
-                <figure class="overflow-hidden rounded-2xl bg-stone-50 p-3">
+                <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
                   <video
                     data-grid-video
                     data-index={index}
@@ -434,7 +439,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                   </video>
                   <figcaption
                     data-grid-caption
-                    class="font-poppins mt-3 text-center text-sm text-stone-600"
+                    class="theme-meta font-poppins mt-3 text-center text-sm text-stone-600"
                   >
                     {item.label}
                   </figcaption>
@@ -446,9 +451,9 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       </section>
     </div>
 
-    <footer class="mt-6 bg-stone-50 py-6">
+    <footer class="theme-footer mt-6 bg-stone-50 py-6">
       <div class="flex justify-center">
-        <a href="#top" class="font-poppins text-base text-black transition hover:scale-105">
+        <a href="#top" class="theme-link font-poppins text-base text-black transition hover:scale-105">
           Back to Top
         </a>
       </div>
@@ -630,7 +635,9 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             video.src = item.video;
             source.src = item.video;
             card.classList.remove("hidden");
-            if (caption) caption.textContent = item.label;
+            if (caption) {
+              caption.textContent = item.label;
+            }
             video.load();
             video.play().catch(() => {});
           } else {
