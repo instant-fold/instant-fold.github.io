@@ -37,6 +37,10 @@ video:hover::-webkit-media-controls-panel {
   opacity: 0.75;
 }
 
+.rollout-video {
+  filter: brightness(0.95) contrast(1.06) saturate(1.01);
+}
+
 .font-poppins {
   font-family: "Poppins", "Instrument Sans", "Segoe UI", sans-serif;
 }

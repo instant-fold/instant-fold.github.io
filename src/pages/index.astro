@@ -35,6 +35,25 @@ const formatRolloutModeName = (modeName: string) => {
   return modeMap[modeName] ?? modeName;
 };
 
+const getRolloutModeDescriptor = (wayName: string) => {
+  const way = wayName.replace(/^way/i, "");
+  const descriptors: Record<string, string> = {
+    "1": "sleeve: down | body: top down",
+    "2": "sleeve: cross | body: bottom up",
+    "3": "sleeve: diagonal | body: top down",
+    "4": "sleeve: diagonal | body: side fold",
+    "5": "sleeve: asymmetric | body: top down",
+    "6": "sleeve: down | body: bottom up",
+    "7": "sleeve: down | body: side fold",
+    "8": "sleeve: cross | body: top down",
+    "9": "sleeve: cross | body: side fold",
+    "10": "sleeve: diagonal | body: bottom up",
+    "11": "sleeve: center | body: top down",
+  };
+
+  return descriptors[way] ?? "";
+};
+
 const collectRolloutModes = () => {
   if (!fs.existsSync(rolloutRoot)) return [];
   const modes: Array<{
@@ -42,6 +61,8 @@ const collectRolloutModes = () => {
     group: string;
     label: string;
     shortLabel: string;
+    fullLabel: string;
+    descriptor: string;
     instruction: string;
     videos: string[];
   }> = [];
@@ -74,12 +95,16 @@ const collectRolloutModes = () => {
           ? JSON.parse(fs.readFileSync(previewJsonPath, "utf-8"))
           : null;
         const shortLabel = `${wayName}/${leafName}`;
+        const fullLabel = `${wayName.replace(/^way/i, "Way ")} / ${formatRolloutModeName(leafName)}`;
+        const descriptor = getRolloutModeDescriptor(wayName);
 
         modes.push({
           key: `${group}/${wayName}/${leafName}`,
           group,
           label: `${group === "seen" ? "Seen" : "Unseen"} / ${shortLabel}`,
           shortLabel,
+          fullLabel,
+          descriptor,
           instruction: previewMeta?.instruction ?? "",
           preview: fs.existsSync(previewPath) ? toPublicUrl(previewPath) : "",
           videos,
@@ -101,7 +126,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
     <div class="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 lg:py-12">
       <section class="mx-auto max-w-5xl">
         <h1 class="font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
-          <span class="text-stone-700">{hero.title}</span>
+          <span class="text-stone-800">{hero.title}</span>
         </h1>
 
         <p class="font-poppins mb-6 text-center text-2xl font-semibold text-red-500">{hero.venue}</p>
@@ -152,7 +177,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
         </p> -->
 
         <div class="space-y-4">
-          <section class="mx-auto w-full rounded-2xl bg-white p-6">
+          <section class="mx-auto w-full rounded-2xl bg-white p-2">
             <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">Abstract</h2>
             <div class="copy-sans space-y-3 text-justify text-md text-stone-800">
               {abstract.map((paragraph) => <p>{paragraph}</p>)}
@@ -251,7 +276,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           {rolloutModes.length > 0 && (
             <section class="rounded-2xl bg-white p-6">
               <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
-                Simulation Rollouts
+                Simulation Rollouts on Unseen Meshes
               </h2>
 
               <div class="mb-3 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
@@ -291,7 +316,10 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                       {defaultRolloutMode?.group === "seen" ? "Seen" : "Unseen"}
                     </span>
                     <span class="font-poppins text-sm font-medium text-stone-700" data-rollout-label>
-                      {defaultRolloutMode?.shortLabel}
+                      {defaultRolloutMode?.fullLabel}
+                    </span>
+                    <span class="copy-sans text-sm text-stone-500" data-rollout-descriptor>
+                      {defaultRolloutMode?.descriptor}
                     </span>
                   </div>
                   <p class="copy-sans w-full text-sm leading-6 text-stone-600" data-rollout-instruction>
@@ -301,9 +329,9 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               </div>
 
               <section class="space-y-1">
-                <figure class="w-full max-w-4xl overflow-hidden bg-white p-4">
+                <figure class="w-full max-w-4xl overflow-hidden bg-white pt-2 pb-3">
                   {defaultRolloutMode?.preview ? (
-                    <div class="flex h-40 w-full items-start justify-start">
+                    <div class="flex h-36 w-full items-start justify-start">
                       <img
                         data-rollout-preview
                         src={defaultRolloutMode.preview}
@@ -313,7 +341,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                       />
                     </div>
                   ) : (
-                    <div class="flex h-40 items-center justify-center text-center">
+                    <div class="flex h-36 items-center justify-center text-center">
                       <p class="copy-sans px-4 text-sm text-stone-500">Preview placeholder</p>
                     </div>
                   )}
@@ -328,7 +356,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                         playsinline
                         loop
                         preload="metadata"
-                        class="mx-auto h-auto w-full object-contain"
+                        class="rollout-video mx-auto h-auto w-full object-contain"
                       >
                         <source src={video} type="video/mp4" />
                       </video>
@@ -524,6 +552,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       const grid = document.querySelector("[data-rollout-grid]");
       const groupLabel = document.querySelector("[data-rollout-group]");
       const modeLabel = document.querySelector("[data-rollout-label]");
+      const descriptorLabel = document.querySelector("[data-rollout-descriptor]");
       const instruction = document.querySelector("[data-rollout-instruction]");
 
       let activeMode = picker?.value || rolloutModes[0].key;
@@ -544,7 +573,11 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
         }
 
         if (modeLabel) {
-          modeLabel.textContent = mode.shortLabel || mode.label;
+          modeLabel.textContent = mode.fullLabel || mode.shortLabel || mode.label;
+        }
+
+        if (descriptorLabel) {
+          descriptorLabel.textContent = mode.descriptor || "";
         }
 
         if (instruction) {
@@ -557,7 +590,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           .map(
             (video) => `
               <figure class="overflow-hidden">
-                <video autoplay muted playsinline loop preload="metadata" class="mx-auto h-auto w-full object-contain">
+                <video autoplay muted playsinline loop preload="metadata" class="rollout-video mx-auto h-auto w-full object-contain">
                   <source src="${video}" type="video/mp4" />
                 </video>
               </figure>
