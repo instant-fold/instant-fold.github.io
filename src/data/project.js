@@ -11,16 +11,18 @@ export const project = {
     actions: [
       { label: "Paper", href: "#", external: false },
     ],
-    teaserVideo: "/assets/videos/obact_animation.mp4",
+    teaserVideo: "/assets/videos/teaser.mp4",
     teaserPoster: "/assets/posters/teaser.jpg",
     teaserCaption:
-      "At test time, we optimize the camera position to an optimal viewpoint closest to the demonstration and minimally occluded by leveraging 3D Gaussian Splatting from sparse-view images for view-conditioned imitation learning.",
+      "Given a single human demonstration as a prompt, Instant Fold infers and executes diverse manipulation strategies directly from the demonstration without requiring gradient updates.",
   },
   zeroShotSim2Real: {
     title: "Zero-Shot Sim2Real with Human Demonstration",
     videos: [
       { video: "/assets/videos/one-shot-videos/1.mp4" },
       { video: "/assets/videos/one-shot-videos/2.mp4" },
+      { video: "/assets/videos/one-shot-videos/3.mp4" },
+      { video: "/assets/videos/one-shot-videos/4.mp4" },
     ],
   },
   videoSets: {

@@ -163,7 +163,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           ))}
         </div>
 
-        <!-- <div class="mb-3">
+        <div class="mb-3">
           <video
             autoplay
             muted
@@ -171,15 +171,16 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             loop
             controls
             preload="metadata"
+            poster={hero.teaserPoster}
             class="mx-auto w-full rounded-xl sm:max-w-[95%]"
           >
             <source src={hero.teaserVideo} type="video/mp4" />
           </video>
-        </div> -->
+        </div>
 
-        <!-- <p class="copy-sans mx-auto mb-10 max-w-4xl text-center text-lg text-stone-700">
+        <p class="copy-sans mx-auto mb-10 max-w-4xl text-center text-lg text-stone-700">
           {hero.teaserCaption}
-        </p> -->
+        </p>
 
         <div class="space-y-4">
           <section class="theme-surface mx-auto w-full rounded-2xl bg-white p-2">
@@ -385,10 +386,10 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               {zeroShotSim2Real.videos.map((item) => (
                 <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
                   <video
+                    data-sync-group="one-shot"
                     autoplay
                     muted
                     playsinline
-                    loop
                     controls
                     preload="metadata"
                     class="mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
@@ -611,6 +612,52 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       applyMode(activeMode);
     };
 
+    const initSyncedVideos = () => {
+      const groups = new Map();
+      document.querySelectorAll("[data-sync-group]").forEach((video) => {
+        const groupName = video.dataset.syncGroup;
+        if (!groupName) return;
+        if (!groups.has(groupName)) groups.set(groupName, []);
+        groups.get(groupName).push(video);
+      });
+
+      groups.forEach((videos) => {
+        if (!videos.length) return;
+
+        let restarting = false;
+        let maxDuration = 0;
+
+        const syncToStart = () => {
+          restarting = true;
+          videos.forEach((video) => {
+            video.currentTime = 0;
+            video.play().catch(() => {});
+          });
+          requestAnimationFrame(() => {
+            restarting = false;
+          });
+        };
+
+        videos.forEach((video) => {
+          const updateDuration = () => {
+            if (Number.isFinite(video.duration)) {
+              maxDuration = Math.max(maxDuration, video.duration);
+            }
+          };
+
+          video.addEventListener("loadedmetadata", updateDuration);
+          video.addEventListener("ended", () => {
+            if (restarting) return;
+            if (!Number.isFinite(maxDuration) || Math.abs(video.duration - maxDuration) < 0.05) {
+              syncToStart();
+            }
+          });
+        });
+
+        syncToStart();
+      });
+    };
+
     const initVideoSets = () => {
       const videoSets = JSON.parse(document.getElementById("video-sets")?.textContent || "{}");
       const setButtons = [...document.querySelectorAll("[data-video-set]")];
@@ -668,6 +715,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
     const init = () => {
       initCompareSliders();
       initRolloutGallery();
+      initSyncedVideos();
       initVideoSets();
     };
 
