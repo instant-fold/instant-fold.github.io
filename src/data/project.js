@@ -2,10 +2,10 @@ export const project = {
   site: {
     name: "Instant Fold",
     description:
-      "Instant Fold: In-Context Imitation Learning for Deformable Manipulation.",
+      "Instant Fold: In-Context Imitation Learning for Deformable ObjectManipulation.",
   },
   hero: {
-    title: "Instant Fold: In-Context Imitation Learning for Deformable Manipulation",
+    title: "Instant Fold: In-Context Imitation Learning for Deformable Object Manipulation",
     venue: "Under Review",
     authors: [{ name: "Anonymous Authors" }],
     actions: [
@@ -77,12 +77,60 @@ export const project = {
       ],
     },
     black_sports: {
-      label: "Training Jacket",
+      label: "Jacket 1",
       videos: [
         { label: "Sleeve: down | Body: top down | Simultaneous", video: "/assets/videos/black_sports/1.mp4" },
         { label: "Sleeve: cross | Body: bottom up | Left-first", video: "/assets/videos/black_sports/2.mp4" },
+        { label: "Sleeve: down | Body: top down | Simultaneous", video: "/assets/videos/black_sports/3.mp4" },
       ],
     },
+    Denim_jacket: {
+      label: "Jacket 2",
+      videos: [
+        { label: "Sleeve: down | Body: top down | Simultaneous", video: "/assets/videos/denim_jacket/1.mp4" },
+      ],
+    },
+  },
+  failureModes: {
+    title: "Failure Modes",
+    description: "Common failure modes.",
+  modes: [
+    {
+      key: "Kinematic Failure",
+      label: "Kinematic Failure",
+      video: "/assets/videos/failures/failure_workspace_limits.mp4",
+      description:
+        "The robot reaches the limits of its workspace or a kinematic singularity, preventing it from continuing to execute the policy. This can be addressed by incorporating kinematic modeling during data generation or by including data that teaches the robot to rearrange the cloth to satisfy kinematic constraints.",
+    },
+    {
+      key: "Robot Occlusion",
+      label: "Robot Occlusion",
+      video: "/assets/videos/failures/failure_occ.mp4",
+      description:
+        "The robot occludes the cloth from the camera's view, causing the segmentation model or the policy to lose track of the cloth state and fail to complete the fold. This can be mitigated by using a more strategically placed camera or incorporating a secondary camera view.",
+    },
+    {
+      key: "Physics Mismatch",
+      label: "Physics Mismatch",
+      video: "/assets/videos/failures/failure_detim.mp4",
+      description:
+        "The simulated cloth physics do not perfectly match the real world, leading to unexpected behavior that causes failures when handling out-of-distribution garments (e.g., high-stiffness garments). This can be mitigated by improving simulation fidelity and randomizing physics parameters during data generation.",
+    },
+    {
+      key: "Sliding",
+      label: "Sliding",
+      video: "/assets/videos/failures/failure_sliding.mp4",
+      description:
+        "The garment slides on the table during simultaneous manipulation, causing the fold to fail. This can be mitigated by improving friction between the garment and the table or by using one arm to stabilize the garment while the other executes the fold.",
+    },
+    {
+      key: "Grip-slip",
+      label: "Grip Slip",
+      video: "/assets/videos/failures/failure_grip_slip.mp4",
+      description:
+        "The grasp loses traction under tension when the two arms stretch, causing the cloth to slip before the fold can complete cleanly. This can be mitigated by improving the gripper design.",
+    },
+  ]
   },
   abstract: [
     "Deformable object manipulation (DOM) is challenging due to high-dimensional, partially observable states that evolve through long-horizon, topology-changing interactions with multiple valid manipulation strategies. We introduce Instant Fold, an in-context imitation learning framework for DOM. Given a single human demonstration, our policy infers and executes diverse manipulation strategies directly from the demonstration—including variations in spatial execution and ordering—without requiring gradient updates. Our approach first learns deformation-aware visual representations via temporal contrastive pretraining, after which a flow-matching transformer policy conditioned on the demonstration predicts actions to execute the intended manipulation strategy. Trained entirely in simulation, Instant Fold generalizes across diverse folding strategies and transfers zero-shot to real-world settings without additional finetuning."

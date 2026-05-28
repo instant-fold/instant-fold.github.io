@@ -4,11 +4,13 @@ import path from "node:path";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { project } from "../data/project.js";
 
-const { hero, zeroShotSim2Real, videoSets, abstract } = project;
+const { hero, zeroShotSim2Real, videoSets, failureModes, abstract } = project;
 const defaultSet = videoSets.pink;
+const defaultFailureMode = failureModes?.modes?.[0] ?? null;
 const rolloutRoot = path.join(process.cwd(), "public/assets/videos/flex_rollouts");
 const rolloutPreviewRoot = path.join(process.cwd(), "public/assets/images/flex_rollouts");
 const serializedVideoSets = JSON.stringify(videoSets);
+const serializedFailureModes = JSON.stringify(failureModes);
 const naturalSort = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 const toPublicUrl = (absPath: string) => `/${path.relative(path.join(process.cwd(), "public"), absPath).split(path.sep).join("/")}`;
 const withAssetVersion = (absPath: string) => {
@@ -448,6 +450,54 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               ))}
             </div>
           </section>
+
+          {failureModes?.modes?.length > 0 && (
+            <section class="theme-surface rounded-2xl bg-white p-6">
+              <div class="mb-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+                <h2 class="font-poppins text-center text-xl font-semibold">{failureModes.title}</h2>
+                <div class="theme-soft-card inline-flex flex-wrap justify-center gap-1 rounded-full bg-stone-100 p-1">
+                  {failureModes.modes.map((mode, index) => (
+                    <button
+                      type="button"
+                      data-failure-mode={mode.key}
+                      aria-pressed={index === 0 ? "true" : "false"}
+                      class="font-poppins cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-200 hover:text-stone-900"
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div class="grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
+                <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
+                  <video
+                    data-failure-video
+                    autoplay
+                    muted
+                    playsinline
+                    loop
+                    preload="metadata"
+                    class="mx-auto h-auto w-full rounded-xl bg-black object-contain"
+                  >
+                    <source src={defaultFailureMode?.video} type="video/mp4" />
+                  </video>
+                </figure>
+
+                <div class="theme-subtle flex h-full flex-col justify-center rounded-2xl px-5 py-5">
+                  <p class="theme-meta font-poppins text-sm font-medium uppercase tracking-[0.18em] text-stone-500">
+                    {failureModes.description}
+                  </p>
+                  <h3 class="font-poppins mt-3 text-2xl font-semibold text-stone-900" data-failure-label>
+                    {defaultFailureMode?.label}
+                  </h3>
+                  <p class="theme-copy copy-sans mt-3 text-base leading-7 text-stone-700" data-failure-description>
+                    {defaultFailureMode?.description}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
       </section>
     </div>
@@ -462,6 +512,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
   </main>
 
   <script id="video-sets" type="application/json" set:html={serializedVideoSets}></script>
+  <script id="failure-modes" type="application/json" set:html={serializedFailureModes}></script>
   <script id="rollout-modes" type="application/json" set:html={serializedRolloutModes}></script>
 
   <script is:inline>
@@ -712,11 +763,53 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       applySet("pink");
     };
 
+    const initFailureModes = () => {
+      const failureModes = JSON.parse(document.getElementById("failure-modes")?.textContent || "{}");
+      const modes = failureModes?.modes || [];
+      if (!modes.length) return;
+
+      const buttons = [...document.querySelectorAll("[data-failure-mode]")];
+      const video = document.querySelector("[data-failure-video]");
+      const label = document.querySelector("[data-failure-label]");
+      const description = document.querySelector("[data-failure-description]");
+
+      const applyMode = (key) => {
+        const mode = modes.find((item) => item.key === key);
+        if (!mode || !video) return;
+
+        const source = video.querySelector("source");
+        if (source) {
+          source.src = mode.video;
+          video.load();
+          video.play().catch(() => {});
+        }
+
+        if (label) label.textContent = mode.label;
+        if (description) description.textContent = mode.description;
+
+        buttons.forEach((button) => {
+          const active = button.dataset.failureMode === key;
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+          button.classList.toggle("bg-white", active);
+          button.classList.toggle("text-stone-950", active);
+          button.classList.toggle("shadow-sm", active);
+          button.classList.toggle("text-stone-600", !active);
+        });
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => applyMode(button.dataset.failureMode));
+      });
+
+      applyMode(modes[0].key);
+    };
+
     const init = () => {
       initCompareSliders();
       initRolloutGallery();
       initSyncedVideos();
       initVideoSets();
+      initFailureModes();
     };
 
     if (document.readyState === "loading") {
