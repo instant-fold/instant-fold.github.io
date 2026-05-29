@@ -15,7 +15,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 <BaseLayout title={`${hero.title} | ${project.site.name}`} description={project.site.description}>
   <main id="top" class="theme-sage-sand min-h-screen bg-white">
     <div class="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 lg:py-12">
-      <section class="mx-auto max-w-5xl">
+      <section class="mx-auto max-w-[65rem]">
         <h1 class="theme-hero-title font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
           <span class="text-stone-800">{hero.title}</span>
         </h1>
@@ -36,7 +36,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           ))}
         </div>
 
-        <div class="mb-8 flex flex-wrap justify-center gap-3">
+        <!-- <div class="mb-8 flex flex-wrap justify-center gap-3">
           {hero.actions.map((action) => (
             <a
               href={action.href}
@@ -47,7 +47,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               {action.label}
             </a>
           ))}
-        </div>
+        </div> -->
 
         <div class="mb-3">
           <video
@@ -57,7 +57,6 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             loop
             controls
             preload="metadata"
-            poster={hero.teaserPoster}
             class="mx-auto w-full rounded-xl sm:max-w-[95%]"
           >
             <source src={hero.teaserVideo} type="video/mp4" />
@@ -81,12 +80,12 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             <div class="overflow-hidden rounded-sm">
               <img
                 src="/assets/images/overview.png"
-                alt="Overview of Instant Fold"
+                alt="Overview of Instant‑Fold"
                 class="mx-auto h-auto w-[75%] object-contain"
               />
             </div>
             <p class="theme-copy copy-sans mt-3 text-justify text-md leading-7 text-stone-800">
-              <span class="font-semibold">Overview of Instant Fold:</span>
+              <span class="font-semibold">Overview of Instant‑Fold:</span>
               {' '}
               (1) We first pretrain a deformation-aware tokenizer with temporal contrastive supervision, lifting masked RGB-D observations into geo-semantic 3D cloth tokens. (2) During policy learning, the shared encoders tokenize both the demonstration and current observations, aggregate dense spatio-temporal demonstration context, and condition a flow-matching denoising transformer to reconstruct clean dual-arm action trajectories from noise.
             </p>
@@ -176,7 +175,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 
             <div class="mx-auto mt-4 w-full max-w-[50%] overflow-hidden rounded-2xl bg-stone-50 p-2">
               <div class="flow-video-frame">
-                <video autoplay muted playsinline loop preload="none" poster="/assets/posters/flow-matching.jpg" disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" class="flow-video mx-auto w-full bg-black">
+                <video data-autoplay-visible muted playsinline loop preload="none" poster="/assets/posters/flow-matching.jpg" disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" class="flow-video mx-auto w-full bg-black">
                   <source src={flowMatching.video} type="video/mp4" />
                 </video>
               </div>
@@ -239,7 +238,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               </div>
 
               <section class="space-y-1">
-                <figure class="theme-soft-card w-full max-w-4xl overflow-hidden bg-white pt-2 pb-3">
+                <figure class="rollout-fade-target theme-soft-card w-full max-w-4xl overflow-hidden bg-white pt-2 pb-3" data-rollout-fade>
                   {defaultRolloutMode?.preview ? (
                     <div class="flex h-36 w-full items-start justify-start">
                       <img
@@ -257,18 +256,19 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                   )}
                 </figure>
 
-                <div class="grid gap-3 grid-cols-2 lg:grid-cols-6" data-rollout-grid>
-                  {defaultRolloutMode?.videos.slice(0, 12).map((video) => (
-                    <figure class="overflow-hidden">
+                <div class="rollout-fade-target grid gap-3 grid-cols-2 lg:grid-cols-6" data-rollout-grid data-rollout-fade>
+                  {defaultRolloutMode?.videos.slice(0, 12).map((video, index) => (
+                    <figure class="overflow-hidden" data-rollout-card data-rollout-index={index}>
                       <video
-                        autoplay
+                        data-rollout-video
+                        data-autoplay-visible
                         muted
                         playsinline
                         loop
                         preload="none"
                         class="rollout-video mx-auto h-auto w-full object-contain"
                       >
-                        <source src={video} type="video/mp4" />
+                        <source data-rollout-video-source src={video} type="video/mp4" />
                       </video>
                     </figure>
                   ))}
@@ -291,7 +291,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                 <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
                   <video
                     data-sync-group="one-shot"
-                    autoplay
+                    data-autoplay-visible
                     muted
                     playsinline
                     controls
@@ -330,16 +330,22 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 
             <div class="grid gap-3 md:grid-cols-2">
               {defaultSet.videos.map((item, index) => (
-                <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
+                <figure class="more-example-card theme-soft-card relative overflow-hidden rounded-2xl bg-stone-50 p-3" data-grid-card>
+                  <div class="more-example-loading" data-grid-loading aria-hidden="true">
+                    <span class="more-example-spinner"></span>
+                    <span class="font-poppins text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500" data-grid-loading-label>
+                      Loading video
+                    </span>
+                  </div>
                   <video
                     data-grid-video
                     data-index={index}
-                    autoplay
+                    data-autoplay-visible
                     muted
                     playsinline
                     loop
-                    preload="none"
-                    class="mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
+                    preload="metadata"
+                    class="more-example-video mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
                   >
                     <source src={item.video} type="video/mp4" />
                   </video>
@@ -376,7 +382,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                 <figure class="theme-soft-card overflow-hidden rounded-2xl bg-stone-50 p-3">
                   <video
                     data-failure-video
-                    autoplay
+                    data-autoplay-visible
                     muted
                     playsinline
                     loop
@@ -418,7 +424,6 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
   <script id="video-sets" type="application/json" set:html={serializedVideoSets}></script>
   <script id="failure-modes" type="application/json" set:html={serializedFailureModes}></script>
   <script id="rollout-modes" type="application/json" set:html={serializedRolloutModes}></script>
-
   <script is:inline>
     const initCompareSliders = () => {
       const compareCards = [...document.querySelectorAll("[data-compare]")];
@@ -504,6 +509,13 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       applyBaseline(baseline);
     };
 
+    let visibleAutoplayObserver;
+
+    const observeVisibleAutoplay = (root = document) => {
+      if (!visibleAutoplayObserver) return;
+      root.querySelectorAll("video[data-autoplay-visible]").forEach((video) => visibleAutoplayObserver.observe(video));
+    };
+
     const initRolloutGallery = () => {
       const rolloutModes = JSON.parse(document.getElementById("rollout-modes")?.textContent || "[]");
       if (!rolloutModes.length) return;
@@ -515,12 +527,19 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       const modeLabel = document.querySelector("[data-rollout-label]");
       const descriptorLabel = document.querySelector("[data-rollout-descriptor]");
       const instruction = document.querySelector("[data-rollout-instruction]");
+      const fadeTargets = [...document.querySelectorAll("[data-rollout-fade]")];
+      const cards = [...document.querySelectorAll("[data-rollout-card]")];
+      const videos = [...document.querySelectorAll("[data-rollout-video]")];
+      let fadeTimeout;
 
       let activeMode = picker?.value || rolloutModes[0].key;
 
       const applyMode = (key) => {
         const mode = rolloutModes.find((item) => item.key === key);
         if (!mode) return;
+
+        fadeTargets.forEach((target) => target.classList.add("is-loading"));
+        window.clearTimeout(fadeTimeout);
 
         activeMode = key;
         if (picker) picker.value = key;
@@ -545,35 +564,51 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           instruction.textContent = mode.instruction || "";
         }
 
-        if (!grid) return;
+        if (!grid || !videos.length) return;
 
-        grid.replaceChildren(
-          ...mode.videos.slice(0, 12).map((video) => {
-            const figure = document.createElement("figure");
-            figure.className = "overflow-hidden";
+        videos.forEach((video, index) => {
+          const source = video.querySelector("[data-rollout-video-source]");
+          const card = cards[index];
+          const nextSrc = mode.videos[index];
 
-            const media = document.createElement("video");
-            media.autoplay = true;
-            media.muted = true;
-            media.playsInline = true;
-            media.loop = true;
-            media.preload = "none";
-            media.className = "rollout-video mx-auto h-auto w-full object-contain";
+          if (!source || !card) return;
 
-            const source = document.createElement("source");
-            source.src = video;
-            source.type = "video/mp4";
+          if (!nextSrc) {
+            video.pause();
+            video.removeAttribute("src");
+            source.removeAttribute("src");
+            card.classList.add("hidden");
+            return;
+          }
 
-            media.appendChild(source);
-            figure.appendChild(media);
-            return figure;
-          })
-        );
+          card.classList.remove("hidden");
+
+          if (source.getAttribute("src") !== nextSrc) {
+            source.src = nextSrc;
+            video.load();
+          }
+        });
+
+        observeVisibleAutoplay(grid);
+
+        requestAnimationFrame(() => {
+          videos.forEach((video, index) => {
+            const card = cards[index];
+            if (!card || card.classList.contains("hidden") || !video.paused) return;
+            video.play().catch(() => {});
+          });
+        });
+
+        fadeTimeout = window.setTimeout(() => {
+          fadeTargets.forEach((target) => target.classList.remove("is-loading"));
+        }, 140);
       };
 
-      picker?.addEventListener("change", (event) => {
+      const onPickerChange = (event) => {
         applyMode(event.target.value);
-      });
+      };
+
+      picker?.addEventListener("change", onPickerChange);
 
       applyMode(activeMode);
     };
@@ -592,6 +627,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 
         let restarting = false;
         let maxDuration = 0;
+        const visibility = new Map(videos.map((video) => [video, false]));
 
         const syncToStart = () => {
           restarting = true;
@@ -614,14 +650,45 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           video.addEventListener("loadedmetadata", updateDuration);
           video.addEventListener("ended", () => {
             if (restarting) return;
-            if (!Number.isFinite(maxDuration) || Math.abs(video.duration - maxDuration) < 0.05) {
+            const visibleCount = [...visibility.values()].filter(Boolean).length;
+            if (visibleCount > 0 && (!Number.isFinite(maxDuration) || Math.abs(video.duration - maxDuration) < 0.05)) {
               syncToStart();
             }
           });
         });
 
-        syncToStart();
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            visibility.set(entry.target, entry.isIntersecting);
+          });
+
+          const visibleCount = [...visibility.values()].filter(Boolean).length;
+          if (visibleCount > 0) {
+            syncToStart();
+          } else {
+            videos.forEach((video) => video.pause());
+          }
+        }, { threshold: 0.35 });
+
+        videos.forEach((video) => observer.observe(video));
       });
+    };
+
+    const initVisibleAutoplay = () => {
+      visibleAutoplayObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target;
+          if (video.dataset.syncGroup) return;
+
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      }, { threshold: 0.35 });
+
+      observeVisibleAutoplay(document);
     };
 
     const initVideoSets = () => {
@@ -629,8 +696,36 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
       const setButtons = [...document.querySelectorAll("[data-video-set]")];
       const videos = [...document.querySelectorAll("[data-grid-video]")];
       const captions = [...document.querySelectorAll("[data-grid-caption]")];
+      const cards = [...document.querySelectorAll("[data-grid-card]")];
 
       if (!setButtons.length || !videos.length) return;
+
+      const setCardLoading = (card, loading, failed = false) => {
+        if (!card) return;
+        const label = card.querySelector("[data-grid-loading-label]");
+        card.classList.toggle("is-loading", loading);
+        card.classList.toggle("is-failed", failed);
+        if (label) {
+          label.textContent = failed ? "Video unavailable" : "Loading video";
+        }
+      };
+
+      videos.forEach((video, index) => {
+        const card = cards[index];
+        if (!card) return;
+
+        video.addEventListener("loadeddata", () => {
+          setCardLoading(card, false, false);
+        });
+
+        video.addEventListener("canplay", () => {
+          setCardLoading(card, false, false);
+        });
+
+        video.addEventListener("error", () => {
+          setCardLoading(card, false, true);
+        });
+      });
 
       const applySet = (name) => {
         const nextSet = videoSets?.[name];
@@ -645,19 +740,26 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           if (!source || !card) return;
 
           if (item) {
-            video.src = item.video;
-            source.src = item.video;
             card.classList.remove("hidden");
+            setCardLoading(card, true, false);
             if (caption) {
               caption.textContent = item.label;
             }
-            video.load();
+
+            if (source.getAttribute("src") !== item.video) {
+              source.src = item.video;
+              video.load();
+            } else if (video.readyState >= 2) {
+              setCardLoading(card, false, false);
+            }
+
             video.play().catch(() => {});
           } else {
             video.pause();
             video.removeAttribute("src");
             source.removeAttribute("src");
             card.classList.add("hidden");
+            setCardLoading(card, false, false);
           }
         });
 
@@ -721,6 +823,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 
     const init = () => {
       initCompareSliders();
+      initVisibleAutoplay();
       initRolloutGallery();
       initSyncedVideos();
       initVideoSets();

@@ -1,0 +1,11 @@
+{
+  "context": "way3/L",
+  "split": "seen",
+  "way": "way3",
+  "mode": "L",
+  "instruction": "Fold both sleeves diagonally toward the opposite side, then fold the shoulders down to the hem. Do the left sleeve first.",
+  "clean_h5_path": "/home/yilong/instant-fold/data/paper_strategy_bank_00037_clean_fov45/way3/L/00037_way3_L_000.h5",
+  "preview_path": "/home/yilong/instant-fold/artifacts/website_sameinit_top20_preview_only/dense4-summary-stateevent-no-temporal-alibi-demo-nohand-epoch500/seen/way3/L/preview.png",
+  "width": 1788,
+  "height": 391
+}

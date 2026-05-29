@@ -122,16 +122,84 @@ video:hover::-webkit-media-controls-panel {
   background-color: black !important;
 }
 
-video::-webkit-media-controls-panel {
-  opacity: 0;
-}
+@media (hover: hover) and (pointer: fine) {
+  video::-webkit-media-controls-panel {
+    opacity: 0;
+  }
 
-video:hover::-webkit-media-controls-panel {
-  opacity: 0.75;
+  video:hover::-webkit-media-controls-panel {
+    opacity: 0.75;
+  }
 }
 
 .rollout-video {
   filter: brightness(0.95) contrast(1.06) saturate(1.01);
+}
+
+.rollout-fade-target {
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    filter 150ms ease;
+  will-change: opacity, transform, filter;
+}
+
+.rollout-fade-target.is-loading {
+  opacity: 0.74;
+  transform: translateY(2px);
+  filter: saturate(0.97);
+}
+
+.more-example-card {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.more-example-video {
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+
+.more-example-loading {
+  position: absolute;
+  inset: 0.75rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: 0.9rem;
+  background: rgba(250, 248, 241, 0.72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+  backdrop-filter: blur(4px);
+}
+
+.more-example-spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(80, 146, 150, 0.2);
+  border-top-color: rgba(80, 146, 150, 0.9);
+  animation: more-example-spin 0.8s linear infinite;
+}
+
+.more-example-card.is-loading .more-example-loading {
+  opacity: 1;
+}
+
+.more-example-card.is-loading .more-example-video {
+  opacity: 0.45;
+  filter: saturate(0.88);
+}
+
+.more-example-card.is-failed .more-example-loading {
+  opacity: 1;
+}
+
+@keyframes more-example-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .flow-video-frame {
@@ -142,10 +210,10 @@ video:hover::-webkit-media-controls-panel {
 }
 
 .flow-video {
-  width: calc(100% + 6px);
+  width: calc(100% + 14px);
   max-width: none;
-  margin-left: -5px;
-  margin-right: -5px;
+  margin-left: -3px;
+  margin-right: -3px;
   height: auto;
 }
 

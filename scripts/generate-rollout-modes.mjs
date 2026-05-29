@@ -4,7 +4,10 @@ import path from "node:path";
 const root = process.cwd();
 const rolloutRoot = path.join(root, "public/assets/videos/flex_rollouts");
 const rolloutPreviewRoot = path.join(root, "public/assets/images/flex_rollouts");
-const outputPath = path.join(root, "src/data/rollout-modes.generated.json");
+const outputPaths = [
+  path.join(root, "src/data/rollout-modes.generated.json"),
+  path.join(root, "public/data/rollout-modes.generated.json"),
+];
 
 const naturalSort = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 const toPublicUrl = (absPath) => `/${path.relative(path.join(root, "public"), absPath).split(path.sep).join("/")}`;
@@ -94,5 +97,9 @@ const collectRolloutModes = () => {
   return modes;
 };
 
-fs.writeFileSync(outputPath, `${JSON.stringify(collectRolloutModes(), null, 2)}\n`);
-console.log(`Wrote ${outputPath}`);
+const payload = `${JSON.stringify(collectRolloutModes(), null, 2)}\n`;
+outputPaths.forEach((outputPath) => {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, payload);
+  console.log(`Wrote ${outputPath}`);
+});

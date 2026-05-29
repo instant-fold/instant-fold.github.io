@@ -1,0 +1,11 @@
+{
+  "context": "way1/R",
+  "split": "seen",
+  "way": "way1",
+  "mode": "R",
+  "instruction": "Fold both sleeves down to the bottom corners, then fold the shoulders down to the hem. Do the right sleeve first.",
+  "clean_h5_path": "/home/yilong/instant-fold/data/paper_strategy_bank_00037_clean_fov45/way1/R/00037_way1_R_000.h5",
+  "preview_path": "/home/yilong/instant-fold/artifacts/website_sameinit_top20_preview_only/dense4-summary-stateevent-no-temporal-alibi-demo-nohand-epoch500/seen/way1/R/preview.png",
+  "width": 1488,
+  "height": 400
+}
