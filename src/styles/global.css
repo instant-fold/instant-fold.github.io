@@ -338,11 +338,4 @@ video:hover::-webkit-media-controls-panel {
     bottom: var(--compare-space);
   }
 
-  .compare-divider {
-    bottom: var(--compare-space);
-  }
-
-  .compare-arrows {
-    transform: translate(-50%, -50%);
-  }
-}
+  .com
