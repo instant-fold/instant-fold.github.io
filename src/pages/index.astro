@@ -1,129 +1,13 @@
 ---
-import fs from "node:fs";
-import path from "node:path";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { project } from "../data/project.js";
+import rolloutModes from "../data/rollout-modes.generated.json";
 
-const { hero, zeroShotSim2Real, videoSets, failureModes, abstract } = project;
+const { hero, zeroShotSim2Real, flowMatching, videoSets, failureModes, abstract } = project;
 const defaultSet = videoSets.pink;
 const defaultFailureMode = failureModes?.modes?.[0] ?? null;
-const rolloutRoot = path.join(process.cwd(), "public/assets/videos/flex_rollouts");
-const rolloutPreviewRoot = path.join(process.cwd(), "public/assets/images/flex_rollouts");
 const serializedVideoSets = JSON.stringify(videoSets);
 const serializedFailureModes = JSON.stringify(failureModes);
-const naturalSort = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
-const toPublicUrl = (absPath: string) => `/${path.relative(path.join(process.cwd(), "public"), absPath).split(path.sep).join("/")}`;
-const withAssetVersion = (absPath: string) => {
-  const stats = fs.statSync(absPath);
-  const version = `${Math.floor(stats.mtimeMs)}-${stats.size}`;
-  return `${toPublicUrl(absPath)}?v=${version}`;
-};
-
-const collectDirectMp4Files = (absDir: string): string[] => {
-  const entries = fs.readdirSync(absDir, { withFileTypes: true }).sort((a, b) => naturalSort(a.name, b.name));
-  return entries
-    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".mp4"))
-    .map((entry) => path.join(absDir, entry.name));
-};
-
-const formatRolloutModeName = (modeName: string) => {
-  const modeMap: Record<string, string> = {
-    L: "Left-first",
-    R: "Right-first",
-    S: "Simultaneous",
-    LL: "Left-Left",
-    LR: "Left-Right",
-    RL: "Right-Left",
-    RR: "Right-Right",
-    SL: "Simultaneous-Left",
-    SR: "Simultaneous-Right",
-  };
-
-  return modeMap[modeName] ?? modeName;
-};
-
-const getRolloutModeDescriptor = (wayName: string) => {
-  const way = wayName.replace(/^way/i, "");
-  const descriptors: Record<string, string> = {
-    "1": "sleeve: down | body: top down",
-    "2": "sleeve: cross | body: bottom up",
-    "3": "sleeve: diagonal | body: top down",
-    "4": "sleeve: diagonal | body: side fold",
-    "5": "sleeve: asymmetric | body: top down",
-    "6": "sleeve: down | body: bottom up",
-    "7": "sleeve: down | body: side fold",
-    "8": "sleeve: cross | body: top down",
-    "9": "sleeve: cross | body: side fold",
-    "10": "sleeve: diagonal | body: bottom up",
-    "11": "sleeve: center | body: top down",
-  };
-
-  return descriptors[way] ?? "";
-};
-
-const collectRolloutModes = () => {
-  if (!fs.existsSync(rolloutRoot)) return [];
-  const modes: Array<{
-    key: string;
-    group: string;
-    label: string;
-    shortLabel: string;
-    fullLabel: string;
-    descriptor: string;
-    instruction: string;
-    videos: string[];
-  }> = [];
-
-  ["seen", "unseen"].forEach((group) => {
-    const groupDir = path.join(rolloutRoot, group);
-    if (!fs.existsSync(groupDir)) return;
-    const wayDirs = fs
-      .readdirSync(groupDir, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name)
-      .sort(naturalSort);
-
-    wayDirs.forEach((wayName) => {
-      const wayDir = path.join(groupDir, wayName);
-      const leafDirs = fs
-        .readdirSync(wayDir, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name)
-        .sort(naturalSort);
-
-      leafDirs.forEach((leafName) => {
-        const absModeDir = path.join(wayDir, leafName);
-        const videos = collectDirectMp4Files(absModeDir).map(withAssetVersion);
-        if (!videos.length) return;
-
-        const previewPath = path.join(rolloutPreviewRoot, group, wayName, leafName, "preview.png");
-        const previewJsonPath = path.join(rolloutPreviewRoot, group, wayName, leafName, "preview.json");
-        const previewMeta = fs.existsSync(previewJsonPath)
-          ? JSON.parse(fs.readFileSync(previewJsonPath, "utf-8"))
-          : null;
-        const shortLabel = `${wayName}/${leafName}`;
-        const fullLabel = `${wayName.replace(/^way/i, "Way ")} / ${formatRolloutModeName(leafName)}`;
-        const descriptor = getRolloutModeDescriptor(wayName);
-
-        modes.push({
-          key: `${group}/${wayName}/${leafName}`,
-          group,
-          label: `${group === "seen" ? "Seen" : "Unseen"} / ${shortLabel}`,
-          shortLabel,
-          fullLabel,
-          descriptor,
-          instruction: previewMeta?.instruction ?? "",
-          preview: fs.existsSync(previewPath) ? withAssetVersion(previewPath) : "",
-          videos,
-        });
-      });
-    });
-  });
-
-  return modes;
-};
-
-const rolloutModes = collectRolloutModes();
 const defaultRolloutMode = rolloutModes.find((mode) => mode.group === "seen") ?? rolloutModes[0] ?? null;
 const serializedRolloutModes = JSON.stringify(rolloutModes);
 ---
@@ -281,8 +165,26 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               </div>
             </div>
           </section>
+
+          <section class="theme-surface mx-auto w-full rounded-2xl bg-white p-4">
+            <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">{flowMatching.title}</h2>
+            <div class="theme-subtle mb-4 rounded-2xl bg-stone-50/80 px-4 py-3 ring-1 ring-stone-100">
+              <p class="theme-copy copy-sans text-center text-md leading-7 text-stone-700">
+                {flowMatching.description}
+              </p>
+            </div>
+
+            <div class="mx-auto mt-4 w-full max-w-[50%] overflow-hidden rounded-2xl bg-stone-50 p-2">
+              <div class="flow-video-frame">
+                <video autoplay muted playsinline loop preload="none" poster="/assets/posters/flow-matching.jpg" disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" class="flow-video mx-auto w-full bg-black">
+                  <source src={flowMatching.video} type="video/mp4" />
+                </video>
+              </div>
+            </div>
+          </section>
+
           {rolloutModes.length > 0 && (
-            <section class="theme-surface rounded-2xl bg-white p-6">
+            <section class="theme-surface section-deferred rounded-2xl bg-white p-6">
               <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
                 Simulation Rollouts on Unseen Meshes
               </h2>
@@ -363,7 +265,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                         muted
                         playsinline
                         loop
-                        preload="metadata"
+                        preload="none"
                         class="rollout-video mx-auto h-auto w-full object-contain"
                       >
                         <source src={video} type="video/mp4" />
@@ -374,7 +276,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
               </section>
           </section>
           )}
-            <section class="theme-surface rounded-2xl bg-white p-6">
+            <section class="theme-surface section-deferred rounded-2xl bg-white p-6">
             <h2 class="font-poppins mb-4 text-center text-3xl font-semibold">
               {zeroShotSim2Real.title}
             </h2>
@@ -393,7 +295,8 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                     muted
                     playsinline
                     controls
-                    preload="metadata"
+                    preload="none"
+                    poster={item.video.replace("/assets/videos/one-shot-videos/", "/assets/posters/one-shot/").replace(".mp4", ".jpg")}
                     class="mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
                   >
                     <source src={item.video} type="video/mp4" />
@@ -408,7 +311,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
             </div>
           </section>
 
-          <section class="theme-surface rounded-2xl bg-white p-6">
+          <section class="theme-surface section-deferred rounded-2xl bg-white p-6">
             <div class="mb-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
               <h2 class="font-poppins text-center text-xl font-semibold">More Examples</h2>
               <div class="theme-soft-card inline-flex flex-wrap justify-center gap-1 rounded-full bg-stone-100 p-1">
@@ -435,7 +338,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                     muted
                     playsinline
                     loop
-                    preload="metadata"
+                    preload="none"
                     class="mx-auto h-auto max-h-[32rem] w-full rounded-xl bg-black object-contain"
                   >
                     <source src={item.video} type="video/mp4" />
@@ -452,7 +355,7 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
           </section>
 
           {failureModes?.modes?.length > 0 && (
-            <section class="theme-surface rounded-2xl bg-white p-6">
+            <section class="theme-surface section-deferred rounded-2xl bg-white p-6">
               <div class="mb-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
                 <h2 class="font-poppins text-center text-xl font-semibold">{failureModes.title}</h2>
                 <div class="theme-soft-card inline-flex flex-wrap justify-center gap-1 rounded-full bg-stone-100 p-1">
@@ -477,21 +380,22 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
                     muted
                     playsinline
                     loop
-                    preload="metadata"
-                    class="mx-auto h-auto w-full rounded-xl bg-black object-contain"
+                    preload="none"
+                    poster="/assets/posters/failures/failure_workspace_limits.jpg"
+                    class="mx-auto h-auto w-full bg-black object-contain"
                   >
                     <source src={defaultFailureMode?.video} type="video/mp4" />
                   </video>
                 </figure>
 
-                <div class="theme-subtle flex h-full flex-col justify-center rounded-2xl px-5 py-5">
+                <div class="theme-subtle flex h-full flex-col justify-start rounded-2xl px-5 py-5 text-left">
                   <p class="theme-meta font-poppins text-sm font-medium uppercase tracking-[0.18em] text-stone-500">
                     {failureModes.description}
                   </p>
-                  <h3 class="font-poppins mt-3 text-2xl font-semibold text-stone-900" data-failure-label>
+                  <h3 class="font-poppins mt-3 min-h-[3.5rem] text-2xl font-semibold text-stone-900" data-failure-label>
                     {defaultFailureMode?.label}
                   </h3>
-                  <p class="theme-copy copy-sans mt-3 text-base leading-7 text-stone-700" data-failure-description>
+                  <p class="theme-copy copy-sans mt-3 min-h-[10.5rem] text-base leading-7 text-stone-700" data-failure-description>
                     {defaultFailureMode?.description}
                   </p>
                 </div>
@@ -643,17 +547,28 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
 
         if (!grid) return;
 
-        grid.innerHTML = mode.videos.slice(0, 12)
-          .map(
-            (video) => `
-              <figure class="overflow-hidden">
-                <video autoplay muted playsinline loop preload="metadata" class="rollout-video mx-auto h-auto w-full object-contain">
-                  <source src="${video}" type="video/mp4" />
-                </video>
-              </figure>
-            `
-          )
-          .join("");
+        grid.replaceChildren(
+          ...mode.videos.slice(0, 12).map((video) => {
+            const figure = document.createElement("figure");
+            figure.className = "overflow-hidden";
+
+            const media = document.createElement("video");
+            media.autoplay = true;
+            media.muted = true;
+            media.playsInline = true;
+            media.loop = true;
+            media.preload = "none";
+            media.className = "rollout-video mx-auto h-auto w-full object-contain";
+
+            const source = document.createElement("source");
+            source.src = video;
+            source.type = "video/mp4";
+
+            media.appendChild(source);
+            figure.appendChild(media);
+            return figure;
+          })
+        );
       };
 
       picker?.addEventListener("change", (event) => {

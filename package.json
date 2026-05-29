@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "env -u ELECTRON_RUN_AS_NODE astro dev --host 127.0.0.1 --port 4321 --strictPort",
     "build": "astro build",
-    "preview": "env -u ELECTRON_RUN_AS_NODE astro preview --host 127.0.0.1 --port 4321"
+    "preview": "env -u ELECTRON_RUN_AS_NODE astro preview --host 127.0.0.1 --port 4321",
+    "generate:rollouts": "node scripts/generate-rollout-modes.mjs"
   },
   "dependencies": {
     "astro": "^6.3.7",

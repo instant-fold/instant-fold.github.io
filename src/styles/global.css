@@ -88,6 +88,11 @@ body {
   border-top: 1px solid var(--theme-line);
 }
 
+.section-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: 960px;
+}
+
 .theme-sage-sand .theme-link {
   color: var(--theme-ink);
 }
@@ -127,6 +132,21 @@ video:hover::-webkit-media-controls-panel {
 
 .rollout-video {
   filter: brightness(0.95) contrast(1.06) saturate(1.01);
+}
+
+.flow-video-frame {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  background: #000;
+}
+
+.flow-video {
+  width: calc(100% + 6px);
+  max-width: none;
+  margin-left: -5px;
+  margin-right: -5px;
+  height: auto;
 }
 
 .font-poppins {
