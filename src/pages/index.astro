@@ -16,38 +16,39 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
   <main id="top" class="theme-sage-sand min-h-screen bg-white">
     <div class="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 lg:py-12">
       <section class="mx-auto max-w-[65rem]">
-        <h1 class="theme-hero-title font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
+        <h1 class="theme-hero-title font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent sm:mb-4 md:text-5xl">
           <span class="text-stone-800">{hero.title}</span>
         </h1>
 
-        <p class="theme-venue font-poppins mb-6 text-center text-2xl font-semibold text-red-500">{hero.venue}</p>
+        <p class="theme-venue font-poppins mb-6 text-center text-2xl font-semibold text-red-500 sm:mb-5">{hero.venue}</p>
 
-        <div class="theme-authors font-poppins mb-6 flex flex-wrap justify-center gap-x-3 gap-y-2 text-center text-stone-800">
-          {hero.authors.map((author) => (
-            <span>
+        <p class="theme-authors font-poppins mb-4 text-center text-[17px] leading-7 text-stone-800">
+          {hero.authors.map((author, index) => (
+            <span class="whitespace-nowrap">
+              {index === hero.authors.length - 1 && "and "}
               {author.href ? (
-                <a href={author.href} target="_blank" rel="noreferrer" class="hover:underline">
-                  {author.name}
-                </a>
+                <a href={author.href} target="_blank" rel="noreferrer noopener" class="theme-author-link">{author.name}</a>
               ) : (
                 author.name
-              )}
+              )}{index < hero.authors.length - 2 && ","}
             </span>
           ))}
-        </div>
+        </p>
 
-        <!-- <div class="mb-8 flex flex-wrap justify-center gap-3">
+        <div class="mb-5 flex flex-wrap justify-center gap-2">
           {hero.actions.map((action) => (
             <a
               href={action.href}
               target={action.external ? "_blank" : undefined}
-              rel={action.external ? "noreferrer" : undefined}
-              class="theme-pill font-poppins rounded-2xl bg-stone-100 px-4 py-2 text-sm text-black no-underline"
+              rel={action.external ? "noreferrer noopener" : undefined}
+              data-action={action.label.toLowerCase()}
+              class="theme-action-link font-poppins inline-flex items-center justify-center gap-1.5 rounded-2xl px-3 py-1.5 text-base font-light no-underline"
             >
+              <img src={action.icon} alt="" aria-hidden="true" class="h-4 w-4" />
               {action.label}
             </a>
           ))}
-        </div> -->
+        </div>
 
         <div class="mb-3">
           <video

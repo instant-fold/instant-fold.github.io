@@ -97,6 +97,34 @@ body {
   color: var(--theme-ink);
 }
 
+.theme-sage-sand .theme-author-link {
+  color: inherit;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+
+.theme-sage-sand .theme-author-link:hover {
+  color: var(--theme-ink);
+}
+
+.theme-sage-sand .theme-action-link {
+  background: var(--theme-sand-soft);
+  color: var(--theme-ink);
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.theme-sage-sand .theme-action-link:hover {
+  background: rgba(202, 178, 114, 0.27);
+  color: #1d4144;
+}
+
+.theme-sage-sand .theme-author-link:focus-visible,
+.theme-sage-sand .theme-action-link:focus-visible {
+  outline: 2px solid rgba(111, 155, 152, 0.65);
+  outline-offset: 3px;
+}
+
 .theme-sage-sand .baseline-pill:hover,
 .theme-sage-sand .rollout-mode-btn:hover,
 .theme-sage-sand .rollout-group-btn:hover {

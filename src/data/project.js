@@ -6,10 +6,31 @@ export const project = {
   },
   hero: {
     title: "Instant‑Fold: In-Context Imitation Learning for Deformable Object Manipulation",
-    venue: "Under Review",
-    authors: [{ name: "Anonymous Authors" }],
+    venue: "CoRL 2026",
+    authors: [
+      { name: "Yilong Wang", href: "https://kelthuzadyl.github.io/" },
+      {
+        name: "Cheng Qian",
+        href: "https://scholar.google.com/citations?user=lxL6FqcAAAAJ&hl=en",
+      },
+      {
+        name: "Edward Johns",
+        href: "https://www.robot-learning.uk/",
+      },
+    ],
     actions: [
-      { label: "Paper", href: "#", external: false },
+      {
+        label: "Paper",
+        href: "https://arxiv.org/abs/2606.04269",
+        icon: "/assets/icons/arxiv.svg",
+        external: true,
+      },
+      {
+        label: "Code",
+        href: "https://github.com/kelthuzadyl/Instant-Fold",
+        icon: "/assets/icons/github.svg",
+        external: true,
+      },
     ],
     teaserVideo: "/assets/videos/teaser.mp4",
     teaserCaption:
