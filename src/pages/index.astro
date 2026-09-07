@@ -16,13 +16,13 @@ const serializedRolloutModes = JSON.stringify(rolloutModes);
   <main id="top" class="theme-sage-sand min-h-screen bg-white">
     <div class="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 lg:py-12">
       <section class="mx-auto max-w-[65rem]">
-        <h1 class="theme-hero-title font-poppins mb-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent sm:mb-4 md:text-5xl">
+        <h1 class="theme-hero-title font-poppins mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-center text-4xl font-medium leading-tight text-transparent md:text-5xl">
           <span class="text-stone-800">{hero.title}</span>
         </h1>
 
         <p class="theme-venue font-poppins mb-6 text-center text-2xl font-semibold text-red-500 sm:mb-5">{hero.venue}</p>
 
-        <p class="theme-authors font-poppins mb-4 text-center text-[17px] leading-7 text-stone-800">
+        <p class="theme-authors font-poppins mb-6 text-center text-[17px] leading-7 text-stone-800">
           {hero.authors.map((author, index) => (
             <span class="whitespace-nowrap">
               {index === hero.authors.length - 1 && "and "}
